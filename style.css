@@ -671,6 +671,12 @@ h1.title .ch {
   margin-top: 2px;
 }
 .sticker.tl { top: 28px; left: 26px; transform: rotate(-5deg); }
+/* Date variant — wider line, smaller display so "Apr 27, 2021" fits */
+.sticker-date .num {
+  font-size: 1.05em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
 .sticker.tr { top: 28px; right: 26px; transform: rotate(4deg); }
 .sticker.br {
   bottom: 28px; right: 26px; transform: rotate(-3deg);
