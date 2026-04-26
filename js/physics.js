@@ -72,7 +72,7 @@
     // Angle is measured from straight-down through the anchor.
     // sin(angle) = (player.x - ax) / L,  cos(angle) = (player.y - ay) / L
     player.angle   = Math.atan2(player.x - ax, player.y - ay);
-    player.angVel  = 2.2; // forward angular velocity
+    player.angVel  = 3.4; // forward angular velocity — strong enough to climb the arc
     player.mode    = MODE.SWING;
     player.webGlow = 1;
 
@@ -85,10 +85,12 @@
     player.lastAnchorX = player.anchorX;
     player.lastAnchorY = player.anchorY;
 
-    // Always launch forward + up; magnitude scales with swing speed
+    // Always launch forward + up; magnitude scales with swing speed.
+    // Upward boost is generous so Spidey can clear high-floating awards
+    // (balloons, mom/bro medallions) hanging near the ceiling.
     const speed   = Math.abs(player.angVel) * player.ropeLen;
-    const forward = Math.max(260, Math.min(speed * 0.55, 520));
-    const upward  = Math.max(260, Math.min(speed * 0.85, 460));
+    const forward = Math.max(280, Math.min(speed * 0.60, 560));
+    const upward  = Math.max(420, Math.min(speed * 1.10, 720));
     player.vx     = forward;
     player.vy     = -upward;
     player.mode   = MODE.LAUNCH;
@@ -211,8 +213,10 @@
       // Anchor scrolls left with the world
       player.anchorX -= game.speed * dt;
 
-      const apex        = (player.angle > 0.55 && player.angVel < 1.5);
-      const anchorBehind = (player.anchorX < player.x - 200);
+      // Allow the swing to carry farther up the arc before auto-release
+      // so the player gains real altitude on each swing.
+      const apex         = (player.angle > 0.95 && player.angVel < 1.2);
+      const anchorBehind = (player.anchorX < player.x - 240);
       if (apex || anchorBehind) {
         G.releaseWeb();
       } else if (player.y >= G.groundY() - 4) {
