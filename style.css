@@ -98,6 +98,55 @@ html, body {
 .overlay.hidden { display: none; }
 .overlay > * { position: relative; z-index: 2; }
 
+/* =====================================================
+   COVER PHOTO — family portrait as start-screen backdrop
+   Sits above the cream wash, beneath the title/UI. Tinted
+   to harmonize with the letterpress palette.
+   ===================================================== */
+.overlay .cover-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url('assets/aidan-family.png');
+  background-repeat: no-repeat;
+  background-position: center 58%;
+  background-size: contain;
+  /* Warm letterpress tint — pulls the photo into the cream/coral palette */
+  filter:
+    saturate(0.92)
+    contrast(1.05)
+    sepia(0.08)
+    drop-shadow(0 14px 0 rgba(26,10,46,0.10));
+  opacity: 0.96;
+  /* gentle entry animation — photo blooms in as the title settles */
+  animation: coverBloom 1.2s cubic-bezier(.2,.8,.2,1) 0.15s both;
+}
+/* Soft vignette + colour wash over the photo so the title still pops */
+.overlay .cover-photo::after {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 38% at 50% 28%,
+      rgba(253,243,223,0.0)  0%,
+      rgba(253,243,223,0.55) 60%,
+      rgba(253,243,223,0.85) 100%),
+    radial-gradient(ellipse 95% 65% at 50% 105%,
+      rgba(246,63,90,0.20) 0%, rgba(246,63,90,0.0) 60%);
+  mix-blend-mode: normal;
+}
+@keyframes coverBloom {
+  from { opacity: 0; transform: scale(1.04) translateY(8px); }
+  to   { opacity: 0.96; transform: none; }
+}
+/* On screens with a photo backdrop, dim the rotating burst so the
+   family doesn't fight the geometric ornament */
+.overlay.has-photo .burst { opacity: 0.32; }
+.overlay.has-photo .rings { opacity: 0.18; }
+/* Lift the title slightly so it sits above the family's heads */
+.overlay.has-photo .title { transform: translateY(-6vh); }
+.overlay.has-photo .eyebrow { transform: translateY(-6vh); }
+
 .burst {
   position: absolute;
   width: min(108vw, 660px);

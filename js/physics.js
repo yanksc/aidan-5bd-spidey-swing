@@ -27,25 +27,50 @@
   };
 
   // ---- Web mechanics ----
+  // The user's tap defines the DIRECTION of the rope from the player.
+  // The rope length is fixed (so swings feel consistent), and we DERIVE
+  // the anchor position so the player never teleports — the swing always
+  // begins from exactly where Spider-Man is right now.
   G.shootWebAt = function (targetX, targetY) {
-    let ax = targetX;
-    let ay = targetY;
+    // Vector from player toward tap point
+    let dx = targetX - player.x;
+    let dy = targetY - player.y;
 
-    // Anchor must be above the player and inside the play area
+    // Rope must point upward; if user taps at/below player, force it up
+    if (dy > -40) dy = -40;
+
+    const len = Math.hypot(dx, dy);
+    if (len < 0.001) { dx = 0; dy = -1; }
+
+    // Fixed rope length keeps physics predictable & swings consistent
+    const L = 320;
+
+    // Unit direction toward anchor
+    const ux = dx / len;
+    const uy = dy / len;
+
+    // Anchor = player + L * direction (player stays put, anchor placed above)
+    let ax = player.x + ux * L;
+    let ay = player.y + uy * L;
+
+    // Clamp anchor inside the play area; if clamped, recompute so the
+    // player still anchors at distance L (we slide the anchor along the
+    // y-axis only, which is what the eye expects from a "swing").
     const minAY = G.ceilingY() + 20;
-    const maxAY = player.y - 60;
-    if (ay > maxAY) ay = maxAY;
     if (ay < minAY) ay = minAY;
-    ax = Math.max(40, Math.min(G.W - 40, ax));
+    if (ax < 40)        ax = 40;
+    if (ax > G.W - 40)  ax = G.W - 40;
 
-    const dx = player.x - ax;
-    const dy = player.y - ay;
-    let L = Math.hypot(dx, dy);
-    L = Math.max(120, Math.min(L, 460));
+    // Recompute rope length from the (possibly clamped) anchor — this keeps
+    // the geometry consistent: player.x/y stay put, anchor is wherever it
+    // landed, rope length = the actual distance between them.
+    const realL = Math.hypot(player.x - ax, player.y - ay);
 
     player.anchorX = ax;
     player.anchorY = ay;
-    player.ropeLen = L;
+    player.ropeLen = Math.max(80, realL);
+    // Angle is measured from straight-down through the anchor.
+    // sin(angle) = (player.x - ax) / L,  cos(angle) = (player.y - ay) / L
     player.angle   = Math.atan2(player.x - ax, player.y - ay);
     player.angVel  = 2.2; // forward angular velocity
     player.mode    = MODE.SWING;
