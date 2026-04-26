@@ -108,32 +108,57 @@ html, body {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background-image: url('assets/aidan-family.png');
+  background-image: url('assets/cover-bg.jpg');
   background-repeat: no-repeat;
-  background-position: center 58%;
-  background-size: contain;
-  /* Warm letterpress tint — pulls the photo into the cream/coral palette */
+  /* Bias toward the upper-mid where Aidan's face sits in the source frame */
+  background-position: center 28%;
+  background-size: cover;
+  /* Letterpress duotone-ish wash: warm + slightly punchy, plus a vignette
+     baked via filter so the photo sits in the palette without flattening. */
   filter:
-    saturate(0.92)
-    contrast(1.05)
-    sepia(0.08)
-    drop-shadow(0 14px 0 rgba(26,10,46,0.10));
-  opacity: 0.96;
-  /* gentle entry animation — photo blooms in as the title settles */
-  animation: coverBloom 1.2s cubic-bezier(.2,.8,.2,1) 0.15s both;
+    saturate(1.05)
+    contrast(1.06)
+    brightness(1.02);
+  opacity: 0.98;
+  animation: coverBloom 1.4s cubic-bezier(.2,.8,.2,1) 0.1s both;
 }
-/* Soft vignette + colour wash over the photo so the title still pops */
+/* Layered washes so the title block + button never fight the photo:
+   • a top crown wash to keep the eyebrow + title legible,
+   • a coral/honey lower curtain that grounds the CTA,
+   • soft side vignettes for that printed-poster feel. */
 .overlay .cover-photo::after {
   content: '';
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 70% 38% at 50% 28%,
-      rgba(253,243,223,0.0)  0%,
-      rgba(253,243,223,0.55) 60%,
-      rgba(253,243,223,0.85) 100%),
-    radial-gradient(ellipse 95% 65% at 50% 105%,
-      rgba(246,63,90,0.20) 0%, rgba(246,63,90,0.0) 60%);
+    /* top reading band */
+    linear-gradient(
+      to bottom,
+      rgba(253,243,223,0.62) 0%,
+      rgba(253,243,223,0.18) 22%,
+      rgba(253,243,223,0.00) 38%
+    ),
+    /* lower curtain — coral fade up into honey, anchors the Begin button */
+    linear-gradient(
+      to top,
+      rgba(246,63,90,0.55) 0%,
+      rgba(246,63,90,0.32) 18%,
+      rgba(246,200,76,0.18) 36%,
+      rgba(246,63,90,0.00) 56%
+    ),
+    /* side vignette */
+    radial-gradient(ellipse 75% 95% at 50% 50%,
+      rgba(0,0,0,0) 55%, rgba(26,10,46,0.28) 100%);
   mix-blend-mode: normal;
+}
+/* Halftone dot field re-applied OVER the photo, multiplied, for the
+   printed-poster character that the rest of the design uses. */
+.overlay .cover-photo::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(26,10,46,0.32) 0.9px, transparent 1.2px);
+  background-size: 8px 8px;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
 }
 @keyframes coverBloom {
   from { opacity: 0; transform: scale(1.04) translateY(8px); }
@@ -771,9 +796,9 @@ h1.title .ch {
   width: 100%;
   aspect-ratio: 3 / 4;
   background: var(--paper);
-  background-image: url('assets/aidan-family.jpg');
+  background-image: url('assets/knee-bg.jpg');
   background-size: cover;
-  background-position: center 22%;     /* bias to the kids' faces */
+  background-position: center 32%;     /* bias to the kids' faces */
   border-radius: 1px;
   box-shadow:
     0 0 0 1px rgba(26,10,46,0.35),

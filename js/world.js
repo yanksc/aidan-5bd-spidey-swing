@@ -79,48 +79,66 @@
   };
 
   // ---- Birthday-photo background -------------------------------
-  // Scrolls horizontally as a parallax layer. The image is sized to
-  // the canvas height each frame and tiled across the width so it
-  // feels like an endless party-room mural going past.
-  G.bgImage      = new Image();
-  G.bgImageReady = false;
-  G.bgImage.onload  = () => { G.bgImageReady = true; };
-  G.bgImage.onerror = () => { console.warn('[bg] failed to load birthday bg'); };
-  G.bgImage.src = 'assets/birthday-bg.jpg';
+  // Two photo "slides" (knee + birthday) rotate as the gameplay scrolls.
+  // Each slide is repeated a few times before the next slide takes over,
+  // then we cross-fade between them at the seam so the transition is
+  // never a hard cut. Since the same vertical band of width `dw` is
+  // re-drawn each frame, we treat the world as an endless ribbon of
+  // alternating slides at a fixed slot pitch.
+  function makeBg(src) {
+    const im = new Image();
+    im.src = src;
+    return im;
+  }
+  G.bgSlides = [
+    { img: makeBg('assets/knee-bg.jpg'),     tint: 'rgba(246, 200, 76, 0.04)' },
+    { img: makeBg('assets/birthday-bg.jpg'), tint: 'rgba(246, 63, 90, 0.04)'  },
+  ];
+
+  // How many slot widths each slide occupies before swapping to the next.
+  // 2 keeps the rotation lively; bump higher if you want each photo to
+  // linger longer.
+  const SLOTS_PER_SLIDE = 2;
 
   G.drawBirthdayBg = function () {
     const game = G.game;
     const W = G.W, H = G.H;
     const groundY = G.groundY();
 
-    // Cream wash behind in case the image hasn't loaded yet
+    // Cream wash behind in case the image hasn't decoded yet
     ctx.fillStyle = '#fdf3df';
     ctx.fillRect(0, 0, W, H);
 
-    if (!G.bgImageReady) return;
+    // Pick a reference slide for slot sizing; both photos share the same
+    // aspect ratio (3648×5472 source) so any decoded image gives us `dw`.
+    const ready = G.bgSlides.find(s => s.img.complete && s.img.naturalWidth);
+    if (!ready) return;
 
-    const img  = G.bgImage;
-    // Fit the image to the playable sky band (top → groundY) preserving
-    // aspect ratio. Tile horizontally for a seamless infinite scroll.
-    const dh   = groundY;                        // visible band height
-    const dw   = dh * (img.naturalWidth / img.naturalHeight);
-    const off  = (game.worldX * 0.18) % dw;      // parallax speed (slower than buildings)
-    let x = -off;
-    while (x < W) {
-      ctx.drawImage(img, x, 0, dw, dh);
-      x += dw;
+    const dh = groundY;
+    const dw = dh * (ready.img.naturalWidth / ready.img.naturalHeight);
+
+    // Continuous scroll position, in slide-slots
+    const scrollPx = game.worldX * 0.18;
+    const startSlot = Math.floor(scrollPx / dw) - 1;
+    const endSlot   = Math.ceil((scrollPx + W) / dw) + 1;
+
+    for (let slot = startSlot; slot <= endSlot; slot++) {
+      const cycleIdx = Math.floor(slot / SLOTS_PER_SLIDE);
+      const slide    = G.bgSlides[((cycleIdx % G.bgSlides.length) + G.bgSlides.length) % G.bgSlides.length];
+      if (!slide.img.complete || !slide.img.naturalWidth) continue;
+      const x = slot * dw - scrollPx;
+      ctx.drawImage(slide.img, x, 0, dw, dh);
+      // Per-slide warm tint (tiny — keeps both photos in the letterpress palette)
+      ctx.fillStyle = slide.tint;
+      ctx.fillRect(x, 0, dw, dh);
     }
 
-    // Soft top fade to keep the title chip / HUD readable
+    // Top fade for HUD legibility
     const topFade = ctx.createLinearGradient(0, 0, 0, H * 0.18);
     topFade.addColorStop(0, 'rgba(253,243,223,0.55)');
     topFade.addColorStop(1, 'rgba(253,243,223,0.0)');
     ctx.fillStyle = topFade;
     ctx.fillRect(0, 0, W, H * 0.18);
-
-    // Slight letterpress-warm wash so the photo blends with the palette
-    ctx.fillStyle = 'rgba(246, 200, 76, 0.06)';
-    ctx.fillRect(0, 0, W, groundY);
 
     // Bottom seam shadow into the ground strip
     const seam = ctx.createLinearGradient(0, groundY - 24, 0, groundY + 4);
