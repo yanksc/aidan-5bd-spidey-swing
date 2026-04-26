@@ -114,19 +114,35 @@
     hud.classList.add('hidden');
 
     let title, medalId;
-    if      (game.score >= 700) { title = 'SPIDEY LEGEND!';   medalId = 'icon-trophy';       }
-    else if (game.score >= 450) { title = 'AMAZING SWINGER!'; medalId = 'icon-medal-1';      }
-    else if (game.score >= 250) { title = 'NICE MOVES!';      medalId = 'icon-medal-2';      }
-    else if (game.score > 0)    { title = 'GREAT TRY!';       medalId = 'icon-ribbon-medal'; }
-    else                        { title = 'KEEP SWINGING!';   medalId = 'icon-web';          }
+    const isChampion = (game.score >= 1000);
+    if      (isChampion)        { title = 'SPIDEY CHAMPION!';  medalId = 'icon-trophy';       }
+    else if (game.score >= 700) { title = 'SPIDEY LEGEND!';    medalId = 'icon-trophy';       }
+    else if (game.score >= 450) { title = 'AMAZING SWINGER!';  medalId = 'icon-medal-1';      }
+    else if (game.score >= 250) { title = 'NICE MOVES!';       medalId = 'icon-medal-2';      }
+    else if (game.score > 0)    { title = 'GREAT TRY!';        medalId = 'icon-ribbon-medal'; }
+    else                        { title = 'KEEP SWINGING!';    medalId = 'icon-web';          }
 
     endTitle.textContent = title;
     if (medalIcon) {
       medalIcon.innerHTML = '<svg viewBox="0 0 64 64"><use href="#' + medalId + '"/></svg>';
     }
-    endHint.innerHTML =
-      '<span class="touch-hint">Pass the phone — who\'s next? <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>' +
-      '<span class="kb-hint">Press <kbd>ENTER</kbd> to play again <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>';
+
+    // Champion-tier reward — 1000+ score earns a real-world prize claim line
+    endScreen.classList.toggle('champion', isChampion);
+    if (isChampion) {
+      endHint.innerHTML =
+        '<span class="champion-banner">' +
+          '<svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-trophy"/></svg>' +
+          ' You did it! Show this screen to <b>Aidan\'s family</b> ' +
+          'to claim your <b>real reward</b>. You\'re an honorary <b>Spidey Champion</b>! ' +
+          '<svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg>' +
+        '</span>' +
+        '<span class="kb-hint">Press <kbd>ENTER</kbd> to play again</span>';
+    } else {
+      endHint.innerHTML =
+        '<span class="touch-hint">Pass the phone — who\'s next? <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>' +
+        '<span class="kb-hint">Press <kbd>ENTER</kbd> to play again <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>';
+    }
 
     const medalEl = endScreen.querySelector('.medal');
     if (medalEl) { medalEl.style.animation = 'none'; void medalEl.offsetWidth; medalEl.style.animation = ''; }

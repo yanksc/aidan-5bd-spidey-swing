@@ -194,12 +194,22 @@
     }
 
     // ---- Draw the frame ----
+    // FIX: run frames in the sprite sheet sit a hair too high in their cells,
+    // so a thin slice of the row above bleeds in at the top of the head.
+    // Crop a few source pixels off the top of run frames only (other modes
+    // are framed correctly and shouldn't be touched).
     const frame = currentFrame();
     const { sx, sy } = frameRect(frame);
+    const RUN_TOP_BLEED = 6; // source pixels to skip from the top
+    const isRun = (player.mode === MODE.RUN);
+    const cropTop = isRun ? RUN_TOP_BLEED : 0;
+    // Scale dest height to match the cropped source height so proportions
+    // stay 1:1 (no vertical squish from cropping just the source).
+    const destDrop = cropTop * (DRAW_H / FRAME_H);
     ctx.drawImage(
       G.spriteCanvas,
-      sx, sy, FRAME_W, FRAME_H,  // source rect
-      drawX, drawY, DRAW_W, DRAW_H  // dest rect
+      sx, sy + cropTop, FRAME_W, FRAME_H - cropTop,    // source rect
+      drawX, drawY + destDrop, DRAW_W, DRAW_H - destDrop // dest rect
     );
 
     ctx.restore();

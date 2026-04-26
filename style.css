@@ -160,6 +160,164 @@ html, body {
   mix-blend-mode: multiply;
   opacity: 0.55;
 }
+
+/* =====================================================
+   CHAMPION BANNER — shown on the end screen when score ≥ 1000.
+   A claim ticket: "show this to Aidan's family for a real reward."
+   ===================================================== */
+.champion-banner {
+  display: block;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  background: linear-gradient(135deg,
+    rgba(246, 200, 76, 0.92) 0%,
+    rgba(246, 200, 76, 0.78) 50%,
+    rgba(246, 63, 90, 0.20)  100%);
+  color: var(--ink, #1a0a2e);
+  border: 2px solid rgba(26,10,46,0.85);
+  border-radius: 14px;
+  box-shadow:
+    0 4px 0 rgba(26,10,46,0.85),
+    0 12px 24px rgba(26,10,46,0.20);
+  font-family: var(--font-body, 'Fraunces', serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(14px, 3.6vw, 17px);
+  line-height: 1.4;
+  letter-spacing: 0.005em;
+  position: relative;
+  animation: championPulse 2.4s ease-in-out infinite;
+}
+.champion-banner::before {
+  content: '★ CLAIM YOUR REWARD ★';
+  display: block;
+  font-family: var(--font-display, 'Shrikhand', cursive);
+  font-style: normal;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: rgba(26,10,46,0.95);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.champion-banner b {
+  color: #b81835;
+  font-weight: 900;
+  font-style: normal;
+  font-family: var(--font-display, 'Shrikhand', cursive);
+}
+@keyframes championPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 0 rgba(26,10,46,0.85), 0 12px 24px rgba(26,10,46,0.20); }
+  50%      { transform: scale(1.015); box-shadow: 0 4px 0 rgba(26,10,46,0.85), 0 16px 32px rgba(246,63,90,0.45); }
+}
+
+/* When the end screen is in champion mode, swap the touch-hint for
+   the claim banner and dim the keyboard hint slightly. */
+.champion .kb-hint { opacity: 0.7; font-size: 12px; margin-top: 10px; }
+
+/* =====================================================
+   QR CARD — desktop "scan to play on your phone" prompt.
+   Pinned to a corner, hidden on phones (where they're
+   already on the right device).
+   ===================================================== */
+.qr-card {
+  position: absolute;
+  right: 28px;
+  bottom: 28px;
+  z-index: 5;
+  width: clamp(180px, 18vw, 230px);
+  display: none;        /* hidden on phones — only shows on desktop */
+  pointer-events: none;
+}
+.qr-card-inner {
+  position: relative;
+  background: var(--cream, #fdf3df);
+  border: 1.5px solid rgba(26,10,46,0.85);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  text-align: center;
+  box-shadow:
+    0 6px 0 rgba(26,10,46,0.18),
+    0 14px 30px rgba(26,10,46,0.22);
+  transform: rotate(-2deg);
+}
+/* Tape strip pinning the QR card */
+.qr-card-inner::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 64px; height: 18px;
+  background: rgba(246, 200, 76, 0.72);
+  border: 1px solid rgba(26,10,46,0.35);
+  box-shadow: 0 2px 0 rgba(26,10,46,0.10);
+}
+.qr-eyebrow {
+  display: block;
+  font-family: var(--font-body, 'Fraunces', serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(26,10,46,0.85);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.qr-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--cream, #fdf3df);
+  image-rendering: pixelated;  /* keep QR edges crisp */
+  border: 1px solid rgba(26,10,46,0.35);
+}
+.qr-url {
+  display: block;
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: rgba(26,10,46,0.75);
+  margin-top: 8px;
+  word-break: break-all;
+  line-height: 1.25;
+}
+
+/* =====================================================
+   DESKTOP SIMPLIFICATION
+   On wide viewports the procedural ornaments (rotating
+   burst, ring layers, halftone dot field) compete with
+   the family photo. Quiet them down so the photo reads
+   as the hero and reveal the QR card.
+   ===================================================== */
+@media (min-width: 820px) {
+  .qr-card { display: block; }
+
+  /* Quiet the ornaments — let the family photo breathe */
+  .overlay.has-photo .burst { opacity: 0.18; }
+  .overlay.has-photo .rings { opacity: 0.10; }
+  .overlay .cover-photo::before { opacity: 0.32; } /* halftone calmer */
+  .overlay .cover-photo::after {
+    /* lighter washes on desktop so the photo dominates */
+    background:
+      linear-gradient(to bottom,
+        rgba(253,243,223,0.42) 0%,
+        rgba(253,243,223,0.10) 22%,
+        rgba(253,243,223,0.00) 38%),
+      linear-gradient(to top,
+        rgba(246,63,90,0.40) 0%,
+        rgba(246,63,90,0.18) 18%,
+        rgba(246,200,76,0.12) 36%,
+        rgba(246,63,90,0.00) 56%),
+      radial-gradient(ellipse 75% 95% at 50% 50%,
+        rgba(0,0,0,0) 60%, rgba(26,10,46,0.20) 100%);
+  }
+  /* Bigger photo crop area on desktop — show more of the family */
+  .overlay .cover-photo {
+    background-position: center 22%;
+  }
+}
 @keyframes coverBloom {
   from { opacity: 0; transform: scale(1.04) translateY(8px); }
   to   { opacity: 0.96; transform: none; }
