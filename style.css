@@ -372,15 +372,30 @@ h1.title .ch {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-.ribbon span {
-  display: inline-block;
+.ribbon .ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(28px, 6.4vw, 36px);
+  height: clamp(28px, 6.4vw, 36px);
   animation: bobUp 2.6s ease-in-out infinite;
   filter: drop-shadow(0 2px 0 rgba(26,10,46,0.25));
 }
-.ribbon span:nth-child(1) { animation-delay: 0s; }
-.ribbon span:nth-child(2) { animation-delay: 0.18s; }
-.ribbon span:nth-child(3) { animation-delay: 0.36s; }
-.ribbon span:nth-child(4) { animation-delay: 0.54s; }
+.ribbon .ico svg {
+  width: 100%; height: 100%; display: block;
+}
+.ribbon .ico:nth-child(1) { animation-delay: 0s; }
+.ribbon .ico:nth-child(2) { animation-delay: 0.18s; }
+.ribbon .ico:nth-child(3) { animation-delay: 0.36s; }
+.ribbon .ico:nth-child(4) { animation-delay: 0.54s; }
+
+/* small inline icon used inside body copy */
+.ico-inline {
+  display: inline-block;
+  width: 1.15em; height: 1.15em;
+  vertical-align: -0.22em;
+  margin: 0 0.05em;
+}
 @keyframes bobUp {
   0%,100% { transform: translateY(0) rotate(-2deg); }
   50%     { transform: translateY(-6px) rotate(2deg); }
@@ -493,6 +508,12 @@ h1.title .ch {
 .chip.score .val { color: var(--ink); }
 .chip.time  .val { color: var(--ink); font-variant-numeric: tabular-nums; }
 .chip.time  .val::after { content: ''; }
+.chip.lives .hearts svg {
+  width: 0.95em; height: 0.95em;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 0.5px;
+}
 .chip.lives .hearts {
   font-size: 0.85em; letter-spacing: 1px;
   filter: drop-shadow(0 1px 0 rgba(26,10,46,0.25));
@@ -800,12 +821,18 @@ h1.title .ch {
   opacity: 0.85;
   filter: drop-shadow(0 0 16px rgba(255,212,0,0.5));
 }
-.medal-emoji {
+.medal-emoji,
+.medal-icon {
   position: relative;
-  font-size: clamp(32px, 9vw, 46px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(38px, 10vw, 52px);
+  height: clamp(38px, 10vw, 52px);
   z-index: 2;
-  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.4));
+  filter: drop-shadow(0 2px 0 rgba(26,10,46,0.4));
 }
+.medal-icon svg { width: 100%; height: 100%; display: block; }
 @keyframes medalSlam {
   0%   { transform: rotate(40deg) scale(0); opacity: 0; }
   60%  { transform: rotate(-12deg) scale(1.18); opacity: 1; }

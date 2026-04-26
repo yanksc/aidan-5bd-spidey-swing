@@ -36,7 +36,16 @@
   G.spriteCanvas.width  = SRC_W;
   G.spriteCanvas.height = SRC_H;
 
+  // Track whether chroma-key succeeded — if it didn't (e.g. file:// origin
+  // tainted the canvas, or a SecurityError on getImageData), we still want
+  // the sprite to render. Worst case it shows the green background; far
+  // better than an invisible player.
+  G.spriteChromaKeyed = false;
+
   const srcImg = new Image();
+  // Anonymous CORS so HTTP servers that send the right header don't taint.
+  srcImg.crossOrigin = 'anonymous';
+
   srcImg.onload = function () {
     const sc = G.spriteCanvas.getContext('2d');
     sc.drawImage(srcImg, 0, 0);
@@ -45,25 +54,45 @@
     // Green-screen pixels: G channel dominates strongly over R and B.
     // Sprite colours (red suit, blue, dark outlines, skin) all have G ≤ R*1.15
     // or G ≤ B*1.15 so they survive unscathed.
-    const imgData = sc.getImageData(0, 0, SRC_W, SRC_H);
-    const d = imgData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const r = d[i], g = d[i + 1], b = d[i + 2];
+    try {
+      const imgData = sc.getImageData(0, 0, SRC_W, SRC_H);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2];
 
-      // Core green-screen: G clearly dominates both R and B
-      if (g > r * 1.25 && g > b * 1.25 && g > 60) {
-        // How "green" is this pixel? 0 = borderline, 1 = pure green
-        const greenness = Math.min(
-          (g / (r + 1) - 1.25) / 0.75,   // how far above the R threshold
-          (g / (b + 1) - 1.25) / 0.75    // how far above the B threshold
-        );
-        const alpha = Math.max(0, 1 - greenness);
-        d[i + 3] = Math.round(alpha * alpha * 255); // smooth edge falloff
+        // Core green-screen: G clearly dominates both R and B
+        if (g > r * 1.25 && g > b * 1.25 && g > 60) {
+          // How "green" is this pixel? 0 = borderline, 1 = pure green
+          const greenness = Math.min(
+            (g / (r + 1) - 1.25) / 0.75,   // how far above the R threshold
+            (g / (b + 1) - 1.25) / 0.75    // how far above the B threshold
+          );
+          const alpha = Math.max(0, 1 - greenness);
+          d[i + 3] = Math.round(alpha * alpha * 255); // smooth edge falloff
+        }
       }
+      sc.putImageData(imgData, 0, 0);
+      G.spriteChromaKeyed = true;
+    } catch (err) {
+      // Most common cause: opening the file via file:// taints the canvas
+      // and throws SecurityError on getImageData. Render the raw image
+      // (with green background) rather than disappear entirely.
+      console.warn('[spidey] chroma-key skipped:', err && err.message || err);
+      // Re-draw to be safe (canvas may be in unknown state after the throw)
+      sc.clearRect(0, 0, SRC_W, SRC_H);
+      sc.drawImage(srcImg, 0, 0);
     }
-    sc.putImageData(imgData, 0, 0);
     G.spriteReady = true;
   };
+
+  srcImg.onerror = function () {
+    // Sprite file missing or blocked — flag a fallback flag. drawSpiderMan
+    // will draw a simple red figure instead so the player is never gone.
+    console.warn('[spidey] sprite failed to load — using fallback figure');
+    G.spriteReady       = true;
+    G.spriteFailedLoad  = true;
+  };
+
   srcImg.src = 'assets/spidey-sprite.png';
 
   // ---- Frame → sheet coordinates ----
@@ -103,11 +132,66 @@
   // ============================================================
   //  Draw player using the sprite sheet
   // ============================================================
+  // ---- Fallback figure: drawn purely from canvas primitives if the sprite
+  //       sheet can't load (offline, file:// CORS, missing asset, etc.).
+  //       Same approximate footprint so collision and shadow stay aligned.
+  function drawFallbackSpidey(x, y, mode) {
+    const headR = 14;
+    const cy    = y - 56;       // body centre
+    const headY = cy - 22;
+    ctx.save();
+    // body
+    ctx.fillStyle = '#d11236';
+    ctx.beginPath(); ctx.ellipse(x, cy, 16, 24, 0, 0, Math.PI * 2); ctx.fill();
+    // head
+    ctx.fillStyle = '#e6213e';
+    ctx.beginPath(); ctx.arc(x, headY, headR, 0, Math.PI * 2); ctx.fill();
+    // eye masks
+    ctx.fillStyle = '#fdf3df';
+    ctx.beginPath(); ctx.ellipse(x - 5, headY - 1, 4, 5, -0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + 5, headY - 1, 4, 5,  0.3, 0, Math.PI * 2); ctx.fill();
+    // belt
+    ctx.strokeStyle = '#1a0a2e';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x - 14, cy + 4); ctx.lineTo(x + 14, cy + 4); ctx.stroke();
+    // arms / legs (simple) — vary by mode
+    ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.strokeStyle = '#d11236';
+    if (mode === MODE.SWING) {
+      ctx.beginPath(); ctx.moveTo(x, cy - 10); ctx.lineTo(x - 4, y - 110); ctx.stroke(); // up arm
+      ctx.beginPath(); ctx.moveTo(x, cy + 10); ctx.lineTo(x - 6, y - 14);  ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, cy + 10); ctx.lineTo(x + 8, y - 12);  ctx.stroke();
+    } else if (mode === MODE.JUMP || mode === MODE.LAUNCH) {
+      ctx.beginPath(); ctx.moveTo(x - 12, cy);     ctx.lineTo(x - 22, cy - 10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + 12, cy);     ctx.lineTo(x + 22, cy - 10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x - 6,  cy + 18); ctx.lineTo(x - 14, y - 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + 6,  cy + 18); ctx.lineTo(x + 14, y - 8); ctx.stroke();
+    } else {
+      // RUN — alternating legs based on time
+      const phase = Math.sin(Date.now() * 0.012);
+      ctx.beginPath(); ctx.moveTo(x - 12, cy + 4); ctx.lineTo(x - 22 + phase * 4, cy + 14); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + 12, cy + 4); ctx.lineTo(x + 22 - phase * 4, cy + 14); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x - 4, cy + 22); ctx.lineTo(x - 8 - phase * 6, y - 4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + 4, cy + 22); ctx.lineTo(x + 8 + phase * 6, y - 4); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   G.drawSpiderMan = function () {
     if (!G.spriteReady) return; // still loading — skip until ready
 
     const x = player.x;
     const y = player.y;
+
+    // If the sprite asset failed to load, draw the canvas fallback instead.
+    if (G.spriteFailedLoad) {
+      // shadow
+      if (player.mode === MODE.RUN) {
+        ctx.fillStyle = 'rgba(0,0,0,0.32)';
+        ctx.beginPath(); ctx.ellipse(x, y + 4, 28, 6, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      drawFallbackSpidey(x, y, player.mode);
+      return;
+    }
 
     const blink = game.invuln > 0 && (Math.floor(game.invuln * 14) % 2 === 0);
 

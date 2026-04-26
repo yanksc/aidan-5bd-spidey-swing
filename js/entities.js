@@ -8,16 +8,45 @@
   const game     = G.game;
   const ctx      = G.ctx;
 
+  // Each entity type maps to a letterpress SVG symbol from the icon library
+  // in index.html. Symbols rasterize into offscreen canvases at startup so
+  // the per-frame draw is a single drawImage call.
   G.TYPES = {
-    SPIDER:  { emoji: '🕷️', points: 10, good: true,  size: 38, float: true  },
-    BALLOON: { emoji: '🎈', points: 15, good: true,  size: 44, float: true  },
-    GIFT:    { emoji: '🎁', points: 25, good: true,  size: 46, float: false },
-    CAKE:    { emoji: '🎂', points: 50, good: true,  size: 52, float: false },
-    STAR:    { emoji: '⭐', points: 35, good: true,  size: 40, float: true  },
-    VILLAIN: { emoji: '😈', points: 0,  good: false, size: 52, float: false, ground: true },
-    MONSTER: { emoji: '👹', points: 0,  good: false, size: 52, float: false, ground: true },
-    GHOST:   { emoji: '👻', points: 0,  good: false, size: 50, float: true,  ground: false },
+    SPIDER:  { iconId: 'icon-spider',  points: 10, good: true,  size: 42, float: true  },
+    BALLOON: { iconId: 'icon-balloon', points: 15, good: true,  size: 48, float: true  },
+    GIFT:    { iconId: 'icon-gift',    points: 25, good: true,  size: 50, float: false },
+    CAKE:    { iconId: 'icon-cake',    points: 50, good: true,  size: 56, float: false },
+    STAR:    { iconId: 'icon-star',    points: 35, good: true,  size: 44, float: true  },
+    VILLAIN: { iconId: 'icon-villain', points: 0,  good: false, size: 56, float: false, ground: true },
+    MONSTER: { iconId: 'icon-monster', points: 0,  good: false, size: 56, float: false, ground: true },
+    GHOST:   { iconId: 'icon-ghost',   points: 0,  good: false, size: 54, float: true,  ground: false },
   };
+
+  // ---- Rasterize each <symbol> in the page's <defs> into an offscreen canvas
+  //       so we can drawImage() instead of text-rendering an emoji every frame.
+  G.iconBitmaps = Object.create(null);
+  function rasterIconForType(type) {
+    const sym = document.getElementById(type.iconId);
+    if (!sym) return;
+    // Serialize the symbol into a standalone <svg>, then load via Image()
+    const vb = sym.getAttribute('viewBox') || '0 0 64 64';
+    const inner = sym.innerHTML;
+    const svgString =
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${inner}</svg>`;
+    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const url  = URL.createObjectURL(blob);
+    const img  = new Image();
+    img.onload = function () {
+      const SIZE = 128;                                // bitmap render size
+      const bmp = document.createElement('canvas');
+      bmp.width = SIZE; bmp.height = SIZE;
+      bmp.getContext('2d').drawImage(img, 0, 0, SIZE, SIZE);
+      G.iconBitmaps[type.iconId] = bmp;
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+  for (const k in G.TYPES) rasterIconForType(G.TYPES[k]);
 
   G.spawnInterval = function () {
     const t = Math.min(1, game.elapsed / 60);
@@ -48,7 +77,7 @@
     entities.push({
       type: key, x: W + t.size + 20, y, baseY: y,
       size: t.size, good: t.good, points: t.points,
-      emoji: t.emoji,
+      iconId: t.iconId,
       bob: Math.random() * Math.PI * 2,
       rot: 0, alive: true, glow: t.good ? 1 : 0.85,
     });
@@ -105,18 +134,33 @@
     }
   };
 
+  // Draw a soft "letterpress halo" backing — a flat-colour disc sized to the
+  // icon, no neon glow. Collectibles get a honey halo, baddies a coral one.
+  function drawHalo(x, y, r, fill) {
+    ctx.save();
+    ctx.fillStyle = fill;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
   G.drawEntities = function () {
     for (const e of entities) {
+      const bmp = G.iconBitmaps[e.iconId];
+      if (!bmp) continue;            // not yet rasterized — skip this frame
+
+      const tilt = Math.sin(e.bob) * 0.08;
+      const half = e.size * 0.5;
+
+      // Halo backing (flat colour, no shadow blur — keeps the print aesthetic)
+      const haloFill = e.good
+        ? 'rgba(246, 200, 76, 0.32)'   // honey
+        : 'rgba(246, 63, 90, 0.28)';   // coral
+      drawHalo(e.x, e.y, half + 6, haloFill);
+
       ctx.save();
       ctx.translate(e.x, e.y);
-      ctx.rotate(Math.sin(e.bob) * 0.08);
-      const haloColor = e.good ? 'rgba(255,230,102,0.85)' : 'rgba(255,80,80,0.85)';
-      ctx.shadowColor = haloColor;
-      ctx.shadowBlur  = e.good ? 22 : 14;
-      ctx.font = `${e.size}px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif`;
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(e.emoji, 0, 0);
+      ctx.rotate(tilt);
+      ctx.drawImage(bmp, -half, -half, e.size, e.size);
       ctx.restore();
     }
   };

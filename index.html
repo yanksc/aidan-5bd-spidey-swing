@@ -15,14 +15,251 @@
 <body>
   <canvas id="game"></canvas>
 
-  <!-- Reusable comic burst (speech-burst star) -->
+  <!-- ============================================================
+       LETTERPRESS ICON LIBRARY
+       Single-weight ink lines (#1a0a2e, ≈4u stroke), flat fills:
+         coral  #f63f5a   honey  #f6c84c   cream  #fdf3df
+         teal   #6fe6df   rose   #ffb1b8   ink    #1a0a2e
+       All icons live on a 64×64 grid, line-join round.
+       ============================================================ -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
+
+      <!-- speech-burst (start screen, countdown) -->
       <symbol id="burst-shape" viewBox="-100 -100 200 200">
         <polygon points="
           0,-96  14,-46  52,-86  40,-32  92,-50  56,-12  98,8  52,18  86,54  36,38  46,90  10,52  -4,98
           -22,52 -54,86 -50,40 -94,52 -58,14 -98,-12 -52,-22 -86,-58 -38,-44 -46,-92 -12,-54
         " />
+      </symbol>
+
+      <!-- Common ink-line group symbol params -->
+      <!-- ============== SPIDER (collectible, +10) ============== -->
+      <symbol id="icon-spider" viewBox="0 0 64 64">
+        <g fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <!-- web thread from top -->
+          <path d="M32 4 V18" stroke-width="2"/>
+          <!-- legs (4 each side, segmented) -->
+          <path d="M22 30 L10 22 L6 28"/>
+          <path d="M22 36 L8 36 L4 42"/>
+          <path d="M42 30 L54 22 L58 28"/>
+          <path d="M42 36 L56 36 L60 42"/>
+          <path d="M24 42 L14 50 L10 56" />
+          <path d="M40 42 L50 50 L54 56" />
+          <path d="M26 26 L18 16 L14 12" />
+          <path d="M38 26 L46 16 L50 12" />
+        </g>
+        <!-- body -->
+        <ellipse cx="32" cy="36" rx="13" ry="11" fill="#1a0a2e"/>
+        <!-- head -->
+        <circle cx="32" cy="22" r="6" fill="#1a0a2e"/>
+        <!-- coral hourglass mark -->
+        <path d="M28 32 L32 36 L36 32 L34 40 L32 38 L30 40 Z" fill="#f63f5a"/>
+        <!-- eye glints -->
+        <circle cx="29.5" cy="21" r="1.2" fill="#fdf3df"/>
+        <circle cx="34.5" cy="21" r="1.2" fill="#fdf3df"/>
+      </symbol>
+
+      <!-- ============== BALLOON (collectible, +15) ============== -->
+      <symbol id="icon-balloon" viewBox="0 0 64 64">
+        <!-- string -->
+        <path d="M32 42 Q30 50 33 56 Q36 60 32 62" fill="none" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+        <!-- balloon body -->
+        <path d="M32 4 C18 4 12 16 12 26 C12 36 22 44 32 44 C42 44 52 36 52 26 C52 16 46 4 32 4 Z"
+              fill="#f63f5a" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- highlight -->
+        <ellipse cx="22" cy="16" rx="4" ry="6" fill="#fdf3df" opacity="0.45"/>
+        <!-- knot -->
+        <path d="M28 42 L32 46 L36 42 Z" fill="#1a0a2e"/>
+      </symbol>
+
+      <!-- ============== GIFT (collectible, +25) ============== -->
+      <symbol id="icon-gift" viewBox="0 0 64 64">
+        <!-- box bottom -->
+        <rect x="8" y="24" width="48" height="34" rx="2" fill="#fdf3df" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- vertical ribbon -->
+        <rect x="28" y="24" width="8" height="34" fill="#f63f5a" stroke="#1a0a2e" stroke-width="2.5"/>
+        <!-- lid -->
+        <rect x="6" y="18" width="52" height="10" rx="1.5" fill="#f6c84c" stroke="#1a0a2e" stroke-width="3"/>
+        <rect x="28" y="18" width="8" height="10" fill="#f63f5a" stroke="#1a0a2e" stroke-width="2.5"/>
+        <!-- bow loops -->
+        <path d="M32 18 C20 8 14 14 22 20 Z" fill="#f63f5a" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M32 18 C44 8 50 14 42 20 Z" fill="#f63f5a" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="32" cy="18" r="3" fill="#1a0a2e"/>
+      </symbol>
+
+      <!-- ============== CAKE (collectible, +50, top prize) ============== -->
+      <symbol id="icon-cake" viewBox="0 0 64 64">
+        <!-- candle flame -->
+        <path d="M32 6 C30 9 30 12 32 14 C34 12 34 9 32 6 Z" fill="#f6c84c" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- candle stick -->
+        <rect x="30.5" y="12" width="3" height="10" fill="#fdf3df" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- top tier -->
+        <rect x="14" y="22" width="36" height="14" rx="1" fill="#ffb1b8" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- frosting drips -->
+        <path d="M14 28 Q19 32 24 28 T34 28 T44 28 T50 28" fill="none" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- bottom tier -->
+        <rect x="8" y="36" width="48" height="20" rx="1.5" fill="#f6c84c" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- decorative dots -->
+        <circle cx="18" cy="46" r="2" fill="#f63f5a"/>
+        <circle cx="32" cy="46" r="2" fill="#f63f5a"/>
+        <circle cx="46" cy="46" r="2" fill="#f63f5a"/>
+        <!-- plate line -->
+        <path d="M6 56 H58" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+      </symbol>
+
+      <!-- ============== STAR (collectible, +35) ============== -->
+      <symbol id="icon-star" viewBox="0 0 64 64">
+        <path d="M32 4 L40 24 L62 26 L45 40 L51 60 L32 49 L13 60 L19 40 L2 26 L24 24 Z"
+              fill="#f6c84c" stroke="#1a0a2e" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- inner highlight star -->
+        <path d="M32 16 L36 26 L46 27 L38 33 L41 43 L32 38 L23 43 L26 33 L18 27 L28 26 Z"
+              fill="#ffe085" opacity="0.65"/>
+      </symbol>
+
+      <!-- ============== VILLAIN (obstacle: ink mask, mustache) ============== -->
+      <symbol id="icon-villain" viewBox="0 0 64 64">
+        <!-- top hat -->
+        <rect x="14" y="4" width="36" height="10" fill="#1a0a2e"/>
+        <rect x="8"  y="14" width="48" height="3" fill="#1a0a2e"/>
+        <!-- band -->
+        <rect x="14" y="9" width="36" height="3" fill="#f63f5a"/>
+        <!-- face -->
+        <circle cx="32" cy="36" r="20" fill="#fdf3df" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- eye mask (the bandit strap) -->
+        <path d="M10 30 H54 L52 38 H12 Z" fill="#1a0a2e"/>
+        <!-- eye whites + glints -->
+        <circle cx="24" cy="34" r="3" fill="#fdf3df"/>
+        <circle cx="40" cy="34" r="3" fill="#fdf3df"/>
+        <circle cx="24" cy="34" r="1.4" fill="#1a0a2e"/>
+        <circle cx="40" cy="34" r="1.4" fill="#1a0a2e"/>
+        <!-- handlebar mustache -->
+        <path d="M20 46 Q26 42 32 46 Q38 42 44 46 Q40 52 32 50 Q24 52 20 46 Z"
+              fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2" stroke-linejoin="round"/>
+      </symbol>
+
+      <!-- ============== MONSTER (obstacle: jagged tooth) ============== -->
+      <symbol id="icon-monster" viewBox="0 0 64 64">
+        <!-- body, lumpy outline -->
+        <path d="M10 30 Q10 8 32 10 Q54 8 54 30 Q56 50 42 54 Q32 60 22 54 Q8 50 10 30 Z"
+              fill="#f63f5a" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <!-- horns -->
+        <path d="M16 14 L12 4 L22 10" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M48 14 L52 4 L42 10" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2" stroke-linejoin="round"/>
+        <!-- eyes -->
+        <circle cx="24" cy="28" r="4" fill="#fdf3df"/>
+        <circle cx="40" cy="28" r="4" fill="#fdf3df"/>
+        <circle cx="25" cy="29" r="1.6" fill="#1a0a2e"/>
+        <circle cx="41" cy="29" r="1.6" fill="#1a0a2e"/>
+        <!-- jagged mouth -->
+        <path d="M18 42 L22 48 L26 42 L30 48 L34 42 L38 48 L42 42 L46 48"
+              fill="none" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+      </symbol>
+
+      <!-- ============== GHOST (obstacle: floating sheet) ============== -->
+      <symbol id="icon-ghost" viewBox="0 0 64 64">
+        <path d="M14 26 Q14 6 32 6 Q50 6 50 26 V52 L44 48 L38 52 L32 48 L26 52 L20 48 L14 52 Z"
+              fill="#fdf3df" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <!-- eyes -->
+        <ellipse cx="25" cy="24" rx="3" ry="4" fill="#1a0a2e"/>
+        <ellipse cx="39" cy="24" rx="3" ry="4" fill="#1a0a2e"/>
+        <!-- coral cheek dots -->
+        <circle cx="22" cy="34" r="2" fill="#f63f5a" opacity="0.8"/>
+        <circle cx="42" cy="34" r="2" fill="#f63f5a" opacity="0.8"/>
+        <!-- mouth o -->
+        <ellipse cx="32" cy="34" rx="2" ry="3" fill="#1a0a2e"/>
+      </symbol>
+
+      <!-- ============== HEART (lives, filled) ============== -->
+      <symbol id="icon-heart" viewBox="0 0 64 64">
+        <path d="M32 56 L8 32 Q-2 18 10 10 Q22 4 32 18 Q42 4 54 10 Q66 18 56 32 Z"
+              fill="#f63f5a" stroke="#1a0a2e" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M18 14 Q14 16 14 22" fill="none" stroke="#fdf3df" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      </symbol>
+
+      <!-- ============== HEART (lives, lost / ghosted) ============== -->
+      <symbol id="icon-heart-empty" viewBox="0 0 64 64">
+        <path d="M32 56 L8 32 Q-2 18 10 10 Q22 4 32 18 Q42 4 54 10 Q66 18 56 32 Z"
+              fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linejoin="round" opacity="0.45"/>
+      </symbol>
+
+      <!-- ============== TROPHY (top medal — score ≥ 700) ============== -->
+      <symbol id="icon-trophy" viewBox="0 0 64 64">
+        <!-- handles -->
+        <path d="M14 14 Q4 14 4 22 Q4 30 14 32" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M50 14 Q60 14 60 22 Q60 30 50 32" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- cup -->
+        <path d="M14 8 H50 V26 Q50 38 32 38 Q14 38 14 26 Z"
+              fill="#f6c84c" stroke="#1a0a2e" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- star on cup -->
+        <path d="M32 16 L34 22 L40 22 L35 26 L37 32 L32 28 L27 32 L29 26 L24 22 L30 22 Z"
+              fill="#f63f5a" stroke="#1a0a2e" stroke-width="2" stroke-linejoin="round"/>
+        <!-- stem -->
+        <rect x="28" y="38" width="8" height="8" fill="#f6c84c" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- base -->
+        <rect x="16" y="46" width="32" height="6" rx="1" fill="#1a0a2e"/>
+        <rect x="12" y="52" width="40" height="6" rx="1.5" fill="#f6c84c" stroke="#1a0a2e" stroke-width="3"/>
+      </symbol>
+
+      <!-- ============== MEDAL-1 (gold, ≥450) ============== -->
+      <symbol id="icon-medal-1" viewBox="0 0 64 64">
+        <!-- ribbons -->
+        <path d="M18 4 L26 32 L18 32 Z" fill="#f63f5a" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M46 4 L46 32 L38 32 Z" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <!-- disc -->
+        <circle cx="32" cy="42" r="18" fill="#f6c84c" stroke="#1a0a2e" stroke-width="3.5"/>
+        <circle cx="32" cy="42" r="11" fill="none" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- numeral 1 -->
+        <path d="M30 36 L34 32 L34 50" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+
+      <!-- ============== MEDAL-2 (silver, ≥250) ============== -->
+      <symbol id="icon-medal-2" viewBox="0 0 64 64">
+        <path d="M18 4 L26 32 L18 32 Z" fill="#6fe6df" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M46 4 L46 32 L38 32 Z" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="32" cy="42" r="18" fill="#fdf3df" stroke="#1a0a2e" stroke-width="3.5"/>
+        <circle cx="32" cy="42" r="11" fill="none" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- numeral 2 -->
+        <path d="M27 38 Q27 32 32 32 Q37 32 37 38 Q37 42 28 50 H38"
+              fill="none" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+
+      <!-- ============== RIBBON-MEDAL (participation, score>0) ============== -->
+      <symbol id="icon-ribbon-medal" viewBox="0 0 64 64">
+        <circle cx="32" cy="22" r="14" fill="#ffb1b8" stroke="#1a0a2e" stroke-width="3"/>
+        <circle cx="32" cy="22" r="8" fill="none" stroke="#1a0a2e" stroke-width="2"/>
+        <path d="M22 32 L18 56 L26 50 L32 56 L38 50 L46 56 L42 32 Z"
+              fill="#f63f5a" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M30 18 L34 18" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+      </symbol>
+
+      <!-- ============== WEB (zero score: keep swinging) ============== -->
+      <symbol id="icon-web" viewBox="0 0 64 64">
+        <g fill="none" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 4 V60"/>
+          <path d="M4 32 H60"/>
+          <path d="M12 12 L52 52"/>
+          <path d="M52 12 L12 52"/>
+          <!-- web rings (3 concentric) -->
+          <path d="M32 14 Q22 22 14 32 Q22 42 32 50 Q42 42 50 32 Q42 22 32 14 Z"/>
+          <path d="M32 22 Q26 26 22 32 Q26 38 32 42 Q38 38 42 32 Q38 26 32 22 Z"/>
+          <circle cx="32" cy="32" r="3" fill="#1a0a2e"/>
+        </g>
+      </symbol>
+
+      <!-- ============== CONFETTI shapes (used in hint copy) ============== -->
+      <symbol id="icon-cake-mini" viewBox="0 0 64 64">
+        <use href="#icon-cake"/>
+      </symbol>
+      <symbol id="icon-party" viewBox="0 0 64 64">
+        <!-- party-cone -->
+        <path d="M14 56 L48 8 L52 12 L20 60 Z" fill="#f6c84c" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M22 30 L34 24" stroke="#f63f5a" stroke-width="3" stroke-linecap="round"/>
+        <path d="M28 38 L40 32" stroke="#6fe6df" stroke-width="3" stroke-linecap="round"/>
+        <path d="M18 50 L30 44" stroke="#f63f5a" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="48" cy="8" r="3" fill="#f63f5a" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- streamers -->
+        <path d="M14 56 Q4 50 6 38" fill="none" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
       </symbol>
     </defs>
   </svg>
@@ -39,7 +276,7 @@
       </div>
       <div class="chip lives" id="chipLives">
         <span class="label">Lives</span>
-        <span class="val hearts" id="livesVal">❤❤❤</span>
+        <span class="val hearts" id="livesVal" aria-label="3 lives"></span>
       </div>
     </div>
   </div>
@@ -70,7 +307,10 @@
     <div class="sticker bl reveal d1">A One-Boy Production</div>
 
     <div class="ribbon reveal d1" aria-hidden="true">
-      <span>🕷️</span><span>🎁</span><span>🎂</span><span>🎈</span>
+      <span class="ico"><svg viewBox="0 0 64 64"><use href="#icon-spider"/></svg></span>
+      <span class="ico"><svg viewBox="0 0 64 64"><use href="#icon-gift"/></svg></span>
+      <span class="ico"><svg viewBox="0 0 64 64"><use href="#icon-cake"/></svg></span>
+      <span class="ico"><svg viewBox="0 0 64 64"><use href="#icon-balloon"/></svg></span>
     </div>
 
     <div class="eyebrow reveal d2">
@@ -116,7 +356,9 @@
         </figcaption>
       </figure>
       <div class="medal">
-        <span class="medal-emoji" id="medalEmoji">🏆</span>
+        <span class="medal-icon" id="medalIcon">
+          <svg viewBox="0 0 64 64"><use href="#icon-trophy"/></svg>
+        </span>
       </div>
     </div>
 
@@ -132,8 +374,8 @@
     </button>
 
     <div class="end-hint" id="endHint">
-      <span class="touch-hint">Pass the phone — who's next? 🎂</span>
-      <span class="kb-hint">Press <kbd>ENTER</kbd> to play again 🎂</span>
+      <span class="touch-hint">Pass the phone — who's next? <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>
+      <span class="kb-hint">Press <kbd>ENTER</kbd> to play again <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>
     </div>
   </div>
 

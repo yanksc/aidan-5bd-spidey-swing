@@ -28,7 +28,7 @@
   const finalScore    = document.getElementById('finalScore');
   const endTitle      = document.getElementById('endTitle');
   const endHint       = document.getElementById('endHint');
-  const medalEmoji    = document.getElementById('medalEmoji');
+  const medalIcon     = document.getElementById('medalIcon');
   const confettiLayer = document.getElementById('confettiLayer');
 
   // Build per-letter animated title
@@ -113,18 +113,20 @@
     G.state = STATE.OVER;
     hud.classList.add('hidden');
 
-    let title, medal;
-    if      (game.score >= 700) { title = 'SPIDEY LEGEND!';   medal = '🏆'; }
-    else if (game.score >= 450) { title = 'AMAZING SWINGER!'; medal = '🥇'; }
-    else if (game.score >= 250) { title = 'NICE MOVES!';      medal = '🥈'; }
-    else if (game.score > 0)    { title = 'GREAT TRY!';       medal = '🎖️'; }
-    else                        { title = 'KEEP SWINGING!';   medal = '🕸️'; }
+    let title, medalId;
+    if      (game.score >= 700) { title = 'SPIDEY LEGEND!';   medalId = 'icon-trophy';       }
+    else if (game.score >= 450) { title = 'AMAZING SWINGER!'; medalId = 'icon-medal-1';      }
+    else if (game.score >= 250) { title = 'NICE MOVES!';      medalId = 'icon-medal-2';      }
+    else if (game.score > 0)    { title = 'GREAT TRY!';       medalId = 'icon-ribbon-medal'; }
+    else                        { title = 'KEEP SWINGING!';   medalId = 'icon-web';          }
 
-    endTitle.textContent  = title;
-    medalEmoji.textContent = medal;
+    endTitle.textContent = title;
+    if (medalIcon) {
+      medalIcon.innerHTML = '<svg viewBox="0 0 64 64"><use href="#' + medalId + '"/></svg>';
+    }
     endHint.innerHTML =
-      '<span class="touch-hint">PASS THE PHONE — WHO\'S NEXT? 🎂</span>' +
-      '<span class="kb-hint">PRESS <kbd>ENTER</kbd> TO PLAY AGAIN 🎂</span>';
+      '<span class="touch-hint">Pass the phone — who\'s next? <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>' +
+      '<span class="kb-hint">Press <kbd>ENTER</kbd> to play again <svg class="ico-inline" viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-cake"/></svg></span>';
 
     const medalEl = endScreen.querySelector('.medal');
     if (medalEl) { medalEl.style.animation = 'none'; void medalEl.offsetWidth; medalEl.style.animation = ''; }
@@ -180,7 +182,11 @@
       chipTime.classList.remove('warn');
     }
     if (game.lives !== lastLivesShown) {
-      livesVal.textContent = '❤️'.repeat(Math.max(0, game.lives)) + '🤍'.repeat(Math.max(0, 3 - game.lives));
+      const FILLED = '<svg viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-heart"/></svg>';
+      const EMPTY  = '<svg viewBox="0 0 64 64" aria-hidden="true"><use href="#icon-heart-empty"/></svg>';
+      livesVal.innerHTML =
+        FILLED.repeat(Math.max(0, game.lives)) +
+        EMPTY.repeat(Math.max(0, 3 - game.lives));
       if (game.lives < lastLivesShown) {
         chipLives.classList.remove('hurt'); void chipLives.offsetWidth; chipLives.classList.add('hurt');
       }
