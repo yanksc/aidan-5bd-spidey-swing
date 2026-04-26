@@ -1,6 +1,3 @@
-.DS_Store
-node_modules/
-*.log
-.vscode/
-.idea/
-.claude/
+# Source-quality assets — only the optimized derivatives ship.
+# Keep originals locally for re-export but don't blow up the repo.
+assets/Aidan_birthday_bg.jpg

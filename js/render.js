@@ -305,13 +305,13 @@
     ctx.save();
     ctx.translate(shx, shy);
 
-    G.drawSkyAndSun();
+    // Birthday-photo backdrop replaces the sky + city skyline stack.
+    // Still draw a few subtle clouds & birds *over* it for parallax life.
+    G.drawBirthdayBg();
     G.drawClouds();
     G.drawBirds();
-    G.drawFarSky();
-    G.drawMidCity();
 
-    G.drawEntities();   // collectibles float between mid and near layers
+    G.drawEntities();   // collectibles float in front of the photo
 
     G.drawNearRoofs();
 

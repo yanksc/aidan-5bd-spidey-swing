@@ -78,6 +78,58 @@
     }
   };
 
+  // ---- Birthday-photo background -------------------------------
+  // Scrolls horizontally as a parallax layer. The image is sized to
+  // the canvas height each frame and tiled across the width so it
+  // feels like an endless party-room mural going past.
+  G.bgImage      = new Image();
+  G.bgImageReady = false;
+  G.bgImage.onload  = () => { G.bgImageReady = true; };
+  G.bgImage.onerror = () => { console.warn('[bg] failed to load birthday bg'); };
+  G.bgImage.src = 'assets/birthday-bg.jpg';
+
+  G.drawBirthdayBg = function () {
+    const game = G.game;
+    const W = G.W, H = G.H;
+    const groundY = G.groundY();
+
+    // Cream wash behind in case the image hasn't loaded yet
+    ctx.fillStyle = '#fdf3df';
+    ctx.fillRect(0, 0, W, H);
+
+    if (!G.bgImageReady) return;
+
+    const img  = G.bgImage;
+    // Fit the image to the playable sky band (top → groundY) preserving
+    // aspect ratio. Tile horizontally for a seamless infinite scroll.
+    const dh   = groundY;                        // visible band height
+    const dw   = dh * (img.naturalWidth / img.naturalHeight);
+    const off  = (game.worldX * 0.18) % dw;      // parallax speed (slower than buildings)
+    let x = -off;
+    while (x < W) {
+      ctx.drawImage(img, x, 0, dw, dh);
+      x += dw;
+    }
+
+    // Soft top fade to keep the title chip / HUD readable
+    const topFade = ctx.createLinearGradient(0, 0, 0, H * 0.18);
+    topFade.addColorStop(0, 'rgba(253,243,223,0.55)');
+    topFade.addColorStop(1, 'rgba(253,243,223,0.0)');
+    ctx.fillStyle = topFade;
+    ctx.fillRect(0, 0, W, H * 0.18);
+
+    // Slight letterpress-warm wash so the photo blends with the palette
+    ctx.fillStyle = 'rgba(246, 200, 76, 0.06)';
+    ctx.fillRect(0, 0, W, groundY);
+
+    // Bottom seam shadow into the ground strip
+    const seam = ctx.createLinearGradient(0, groundY - 24, 0, groundY + 4);
+    seam.addColorStop(0, 'rgba(26,10,46,0)');
+    seam.addColorStop(1, 'rgba(26,10,46,0.45)');
+    ctx.fillStyle = seam;
+    ctx.fillRect(0, groundY - 24, W, 28);
+  };
+
   // ---- Background draw functions (back → front) ----
 
   G.drawSkyAndSun = function () {

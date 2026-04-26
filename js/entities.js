@@ -11,24 +11,34 @@
   // Each entity type maps to a letterpress SVG symbol from the icon library
   // in index.html. Symbols rasterize into offscreen canvases at startup so
   // the per-frame draw is a single drawImage call.
+  // Family-face awards: circle-cropped portraits replace the spider & gift
+  // collectibles. Slightly bigger than the old icons so the faces read
+  // clearly while flying past. `imgSrc` triggers the PNG loader path;
+  // entries with `iconId` use the inline-SVG <symbol> rasterizer.
   G.TYPES = {
-    SPIDER:  { iconId: 'icon-spider',  points: 10, good: true,  size: 42, float: true  },
-    BALLOON: { iconId: 'icon-balloon', points: 15, good: true,  size: 48, float: true  },
-    GIFT:    { iconId: 'icon-gift',    points: 25, good: true,  size: 50, float: false },
-    CAKE:    { iconId: 'icon-cake',    points: 50, good: true,  size: 56, float: false },
-    STAR:    { iconId: 'icon-star',    points: 35, good: true,  size: 44, float: true  },
-    VILLAIN: { iconId: 'icon-villain', points: 0,  good: false, size: 56, float: false, ground: true },
-    MONSTER: { iconId: 'icon-monster', points: 0,  good: false, size: 56, float: false, ground: true },
-    GHOST:   { iconId: 'icon-ghost',   points: 0,  good: false, size: 54, float: true,  ground: false },
+    MOM:     { imgSrc: 'assets/face-mom.png', points: 20, good: true,  size: 64, float: true  },
+    DAD:     { imgSrc: 'assets/face-dad.png', points: 25, good: true,  size: 64, float: false },
+    BRO:     { imgSrc: 'assets/face-bro.png', points: 35, good: true,  size: 60, float: true  },
+    BALLOON: { iconId: 'icon-balloon',        points: 15, good: true,  size: 48, float: true  },
+    CAKE:    { iconId: 'icon-cake',           points: 50, good: true,  size: 56, float: false },
+    VILLAIN: { iconId: 'icon-villain',        points: 0,  good: false, size: 56, float: false, ground: true },
+    MONSTER: { iconId: 'icon-monster',        points: 0,  good: false, size: 56, float: false, ground: true },
+    GHOST:   { iconId: 'icon-ghost',          points: 0,  good: false, size: 54, float: true,  ground: false },
   };
 
-  // ---- Rasterize each <symbol> in the page's <defs> into an offscreen canvas
-  //       so we can drawImage() instead of text-rendering an emoji every frame.
+  // Each type gets a stable bitmap key — an SVG-symbol id, or the photo path
+  for (const k in G.TYPES) {
+    const t = G.TYPES[k];
+    t.bmpKey = t.imgSrc || t.iconId;
+  }
+
+  // ---- Rasterize SVG <symbol>s and load PNG portraits into offscreen
+  //       canvases so the per-frame draw is a single drawImage call.
   G.iconBitmaps = Object.create(null);
-  function rasterIconForType(type) {
+
+  function rasterSvgSymbol(type) {
     const sym = document.getElementById(type.iconId);
     if (!sym) return;
-    // Serialize the symbol into a standalone <svg>, then load via Image()
     const vb = sym.getAttribute('viewBox') || '0 0 64 64';
     const inner = sym.innerHTML;
     const svgString =
@@ -37,16 +47,37 @@
     const url  = URL.createObjectURL(blob);
     const img  = new Image();
     img.onload = function () {
-      const SIZE = 128;                                // bitmap render size
+      const SIZE = 128;
       const bmp = document.createElement('canvas');
       bmp.width = SIZE; bmp.height = SIZE;
       bmp.getContext('2d').drawImage(img, 0, 0, SIZE, SIZE);
-      G.iconBitmaps[type.iconId] = bmp;
+      G.iconBitmaps[type.bmpKey] = bmp;
       URL.revokeObjectURL(url);
     };
     img.src = url;
   }
-  for (const k in G.TYPES) rasterIconForType(G.TYPES[k]);
+
+  function loadPngPortrait(type) {
+    const img = new Image();
+    img.onload = function () {
+      // Render at native size to preserve the carefully-baked ring/shadow
+      const bmp = document.createElement('canvas');
+      bmp.width  = img.naturalWidth;
+      bmp.height = img.naturalHeight;
+      bmp.getContext('2d').drawImage(img, 0, 0);
+      G.iconBitmaps[type.bmpKey] = bmp;
+    };
+    img.onerror = function () {
+      console.warn('[entities] portrait failed to load:', type.imgSrc);
+    };
+    img.src = type.imgSrc;
+  }
+
+  for (const k in G.TYPES) {
+    const t = G.TYPES[k];
+    if (t.imgSrc)      loadPngPortrait(t);
+    else if (t.iconId) rasterSvgSymbol(t);
+  }
 
   G.spawnInterval = function () {
     const t = Math.min(1, game.elapsed / 60);
@@ -59,8 +90,13 @@
     const r = Math.random();
     let key;
     if (r < 0.74) {
+      // Collectibles: family faces are the headline awards
       const g = Math.random();
-      key = g < 0.40 ? 'SPIDER' : g < 0.65 ? 'BALLOON' : g < 0.84 ? 'STAR' : g < 0.95 ? 'GIFT' : 'CAKE';
+      key = g < 0.28 ? 'MOM'
+          : g < 0.52 ? 'DAD'
+          : g < 0.72 ? 'BRO'
+          : g < 0.90 ? 'BALLOON'
+          :            'CAKE';
     } else {
       const b = Math.random();
       key = b < 0.45 ? 'VILLAIN' : b < 0.80 ? 'MONSTER' : 'GHOST';
@@ -77,7 +113,7 @@
     entities.push({
       type: key, x: W + t.size + 20, y, baseY: y,
       size: t.size, good: t.good, points: t.points,
-      iconId: t.iconId,
+      bmpKey: t.bmpKey,
       bob: Math.random() * Math.PI * 2,
       rot: 0, alive: true, glow: t.good ? 1 : 0.85,
     });
@@ -145,17 +181,29 @@
 
   G.drawEntities = function () {
     for (const e of entities) {
-      const bmp = G.iconBitmaps[e.iconId];
+      const bmp = G.iconBitmaps[e.bmpKey];
       if (!bmp) continue;            // not yet rasterized — skip this frame
 
       const tilt = Math.sin(e.bob) * 0.08;
       const half = e.size * 0.5;
+      const isPortrait = !!G.TYPES[e.type].imgSrc;
 
-      // Halo backing (flat colour, no shadow blur — keeps the print aesthetic)
-      const haloFill = e.good
-        ? 'rgba(246, 200, 76, 0.32)'   // honey
-        : 'rgba(246, 63, 90, 0.28)';   // coral
-      drawHalo(e.x, e.y, half + 6, haloFill);
+      if (!isPortrait) {
+        // Halo backing for SVG icons — portraits ship with their own ring + shadow
+        const haloFill = e.good
+          ? 'rgba(246, 200, 76, 0.32)'   // honey
+          : 'rgba(246, 63, 90, 0.28)';   // coral
+        drawHalo(e.x, e.y, half + 6, haloFill);
+      } else {
+        // Soft golden glow behind the family-face awards
+        ctx.save();
+        const gp = ctx.createRadialGradient(e.x, e.y, half * 0.4, e.x, e.y, half * 1.4);
+        gp.addColorStop(0, 'rgba(246, 200, 76, 0.55)');
+        gp.addColorStop(1, 'rgba(246, 200, 76, 0)');
+        ctx.fillStyle = gp;
+        ctx.beginPath(); ctx.arc(e.x, e.y, half * 1.4, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
 
       ctx.save();
       ctx.translate(e.x, e.y);
