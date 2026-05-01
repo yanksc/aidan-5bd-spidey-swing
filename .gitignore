@@ -1,3 +1,9 @@
 # Source-quality assets — only the optimized derivatives ship.
 # Keep originals locally for re-export but don't blow up the repo.
 assets/Aidan_birthday_bg.jpg
+assets/bg_knee.jpg
+
+# Pre-blur "clean" backups kept on the author's machine so the public
+# blur can be reverted. Never ship these — that defeats the privacy.
+assets/*.clean.jpg
+
